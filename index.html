@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #000; color: #0f0; text-align: center; font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #camaleao { font-size: 120px; transition: 0.1s; cursor: pointer; user-select: none; }
+        #camaleao:active { transform: scale(1.4); }
+        .score { font-size: 3rem; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="score">💰 <span id="pontos">0</span></div>
+    <div id="camaleao" onclick="clicou()">🦎</div>
+    <script>
+        let p = 0;
+        function clicou() {
+            p++;
+            document.getElementById('pontos').innerText = p;
+            if (navigator.vibrate) navigator.vibrate(40);
+        }
+    </script>
+</body>
+</html>
