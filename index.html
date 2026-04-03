@@ -3,44 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Chameleon Gotchi</title>
+    <title>Chameleon Gotchi 8-Bit</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        body { background: #8bac0f; color: #0f380f; font-family: 'Press Start 2P', cursive; text-align: center; margin: 0; padding: 20px; text-transform: uppercase; }
-        .game-screen { border: 10px solid #306230; background: #9bb216; padding: 15px; border-radius: 5px; max-width: 350px; margin: auto; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
-        #pet { width: 120px; height: 120px; margin: 20px auto; display: block; image-rendering: pixelated; animation: bounce 0.8s infinite alternate; }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
-        .stats { font-size: 8px; text-align: left; margin-bottom: 15px; }
-        .bar-bg { width: 100%; background: #306230; height: 12px; margin: 5px 0 15px; border: 2px solid #0f380f; }
+        body { background: #8bac0f; color: #0f380f; font-family: 'Press Start 2P', cursive; text-align: center; margin: 0; padding: 20px; text-transform: uppercase; overflow: hidden; }
+        .game-screen { border: 10px solid #306230; background: #9bb216; padding: 15px; border-radius: 5px; max-width: 320px; margin: auto; position: relative; }
+        
+        /* O Camaleão Pixel Art Fofo */
+        .pet-container { position: relative; width: 100px; height: 100px; margin: 20px auto; animation: breathe 2s infinite alternate ease-in-out; }
+        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.05); } }
+        
+        #pet-body, #pet-eyes { position: absolute; top: 0; left: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+        #pet-eyes { animation: blink 4s infinite step-start; }
+        @keyframes blink { 0%, 95%, 100% { opacity: 1; } 96%, 99% { opacity: 0; } }
+
+        .stats { font-size: 8px; text-align: left; margin-bottom: 10px; }
+        .stat-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; margin-bottom: 5px; }
+        .bar-bg { width: 100%; background: #306230; height: 10px; border: 2px solid #0f380f; position: relative; }
         .bar-fill { height: 100%; background: #8bac0f; width: 50%; transition: width 0.3s; }
-        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { background: #306230; color: #8bac0f; border: none; padding: 10px; font-family: 'Press Start 2P'; font-size: 8px; cursor: pointer; border-bottom: 4px solid #0f380f; }
+        
+        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        button { background: #306230; color: #8bac0f; border: none; padding: 12px; font-family: 'Press Start 2P'; font-size: 8px; cursor: pointer; border-bottom: 4px solid #0f380f; text-transform: uppercase; }
         button:active { border-bottom: 0; margin-top: 4px; }
+        
+        #msg-popup { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: #fff; color: #000; border: 2px solid #000; padding: 5px; font-size: 8px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="game-screen">
+    <div id="msg-popup">Nhac! +10 XP</div>
+
     <div class="stats">
-        NÍVEL: <span id="lvl">1</span> | XP: <span id="xp-num">0</span>/100
-        <div class="bar-bg"><div id="xp-bar" class="bar-fill" style="width: 0%;"></div></div>
-        FOME:
-        <div class="bar-bg"><div id="fome-bar" class="bar-fill" style="width: 100%;"></div></div>
-        SUJEIRA:
-        <div class="bar-bg"><div id="sujeira-bar" class="bar-fill" style="width: 0%;"></div></div>
+        <div style="font-size: 10px; margin-bottom: 10px; text-align: center;">Lvl <span id="lvl">1</span> (<span id="xp-num">0</span>/100 XP)</div>
+        <div class="stat-row">Fome: <div class="bar-bg"><div id="fome-bar" class="bar-fill" style="width: 100%;"></div></div></div>
+        <div class="stat-row">Caraca: <div class="bar-bg"><div id="sujeira-bar" class="bar-fill" style="width: 0%;"></div></div></div>
     </div>
 
-    <img id="pet" src="https://img.icons8.com/pixel-view/512/chameleon.png">
+    <div class="pet-container">
+        <img id="pet-body" src="https://i.ibb.co/L5kRj6Y/cham-body.png" alt="Pet Body">
+        <img id="pet-eyes" src="https://i.ibb.co/y4pY0Gf/cham-eyes.png" alt="Pet Eyes">
+    </div>
 
     <div class="buttons">
-        <button onclick="fazerAcao('comer')">ALIMENTAR 🦗</button>
-        <button onclick="fazerAcao('banho')">BANHO 🛁</button>
+        <button onclick="fazerAcao('comer')">Alimentar 🦗</button>
+        <button onclick="fazerAcao('banho')">Banho 🛁</button>
     </div>
 </div>
 
 <script>
     // Sistema de Save e Dados
     let data = JSON.parse(localStorage.getItem('chameleon_save')) || { lvl: 1, xp: 0, fome: 100, sujeira: 0 };
+    const popup = document.getElementById('msg-popup');
 
     function salvar() {
         localStorage.setItem('chameleon_save', JSON.stringify(data));
@@ -51,55 +65,64 @@
             if(data.fome < 100) {
                 data.fome = Math.min(100, data.fome + 20);
                 data.xp += 10;
-                data.sujeira = Math.min(100, data.sujeira + 5);
-                tocarSom(800, 100); // Som de mastigada (Bip)
+                data.sujeira = Math.min(100, data.sujeira + 10);
+                showMsg('Nhac! +10 XP');
+                tocarSom(800, 100); // Som de Bip mastigada
             }
         } else if (tipo === 'banho') {
-            data.sujeira = 0;
-            data.xp += 5;
-            tocarSom(400, 300); // Som de água (Bip longo)
+            if(data.sujeira > 0) {
+                data.sujeira = 0;
+                data.xp += 5;
+                showMsg('Limpinho! +5 XP');
+                tocarSom(400, 300); // Som de Bip água
+            }
         }
 
         if (data.xp >= 100) {
             data.lvl++;
             data.xp = 0;
-            alert("LEVEL UP! 🦎💎");
+            alert("🎉 LEVEL UP! 💎");
         }
         atualizarTela();
         salvar();
     }
 
-    // Gerador de Som (Não precisa de arquivo MP3!)
+    function showMsg(text) {
+        popup.innerText = text;
+        popup.style.display = 'block';
+        setTimeout(() => popup.style.display = 'none', 1500);
+    }
+
+    // Gerador de Som de Bip de 8-bits
     function tocarSom(freq, dur) {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = freq;
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + dur/1000);
-        osc.stop(ctx.currentTime + dur/1000);
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = freq; osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + dur/1000);
+            osc.stop(ctx.currentTime + dur/1000);
+        } catch(e) {}
     }
 
     function atualizarTela() {
         document.getElementById('lvl').innerText = data.lvl;
         document.getElementById('xp-num').innerText = data.xp;
-        document.getElementById('xp-bar').style.width = data.xp + "%";
         document.getElementById('fome-bar').style.width = data.fome + "%";
         document.getElementById('sujeira-bar').style.width = data.sujeira + "%";
         
-        // Se estiver muito sujo, ele para de pular
-        document.getElementById('pet').style.animationDuration = data.sujeira > 70 ? '0s' : '0.8s';
+        // Se estiver com muita caraca, ele respira mais devagar
+        document.querySelector('.pet-container').style.animationDuration = data.sujeira > 70 ? '0s' : '2s';
     }
 
     // Diminuir fome com o tempo
     setInterval(() => {
         data.fome = Math.max(0, data.fome - 1);
-        atualizarTela();
         salvar();
-    }, 10000);
+    }, 10000); // Fome cai a cada 10 segs
 
+    // Começar com a tela atualizada
     atualizarTela();
 </script>
 </body>
